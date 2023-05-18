@@ -1,22 +1,28 @@
-#import the required modules
+# import the required modules
+import os
+
 import cv2
-import matplotlib.pyplot as plt
+
 import time
 from deepface import DeepFace
 
+from pathlib import Path
+
+
+def get_project_root() -> Path:
+    return Path(__file__).parent.parent.parent
+
+
 if __name__ == "__main__":
     start_time = time.time()
-    input_image = cv2.imread("C:/Users/karol/Desktop/Studia/6 Semestr/ProjektLokalny/Local_Project/datasets/fer2013/test/angry/PrivateTest_3411628.jpg")
-    plt.imshow(input_image[:, :, :: -1])
+    root = get_project_root()
+    input_image = cv2.imread(os.path.join(root, "datasets/fer2013/test/angry/PrivateTest_88305.jpg"))
+    # plt.imshow(input_image[:, :, :: -1])
 
     # display that image
-    plt.show()
-
-    result = DeepFace.analyze(input_image, actions=['emotion'],enforce_detection=False)
-
+    # plt.show()
+    result = DeepFace.analyze(input_image, actions=['emotion'], enforce_detection=False)
 
     # print result
     print(result)
     print("--- %s seconds ---" % (time.time() - start_time))
-
-
