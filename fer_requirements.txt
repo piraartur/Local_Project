@@ -1,5 +1,0 @@
-fer
-cv2
-matplotlib
-moviepy
-tensorflow
