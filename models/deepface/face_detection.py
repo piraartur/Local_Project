@@ -11,13 +11,45 @@ from models.deepface.data_manipulation import (
     get_emotions_from_result,
     combine_emotion_values_from_all_images,
     calculate_model_total_emotions_percentages,
+    write_emotions_to_csv_file,
 )
 from models.deepface.helpers import (
-    get_project_root,
-    display_image,
     get_absolute_folder_path,
     get_emotion_from_folder_path,
 )
+
+
+def deepface():
+    detection_rate_angry = detect_emotions_and_write_to_csv_file(emotion="angry")
+    detection_rate_disgust = detect_emotions_and_write_to_csv_file(emotion="disgust")
+    detection_rate_fear = detect_emotions_and_write_to_csv_file(emotion="fear")
+    detection_rate_happy = detect_emotions_and_write_to_csv_file(emotion="happy")
+    detection_rate_neutral = detect_emotions_and_write_to_csv_file(emotion="neutral")
+    detection_rate_sad = detect_emotions_and_write_to_csv_file(emotion="sad")
+    detection_rate_surprise = detect_emotions_and_write_to_csv_file(emotion="surprise")
+
+    emotions = {
+        "angry": detection_rate_angry,
+        "disgust": detection_rate_disgust,
+        "fear": detection_rate_fear,
+        "happy": detection_rate_happy,
+        "neutral": detection_rate_neutral,
+        "sad": detection_rate_sad,
+        "surprise": detection_rate_surprise,
+    }
+    write_emotions_to_csv_file(
+        emotions=emotions, csv_file_name=f"emotions_deepface.csv"
+    )
+
+
+def detect_emotions_and_write_to_csv_file(emotion):
+    detection_rate, emotions = detect_folder_images_face_expressions(
+        f"datasets/fer2013/test/{emotion}/"
+    )
+    write_emotions_to_csv_file(
+        emotions=emotions, csv_file_name=f"{emotion}_deepface.csv"
+    )
+    return detection_rate
 
 
 def deepface_face_expression_detection(file_path):

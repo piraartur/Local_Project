@@ -1,3 +1,6 @@
+import csv
+
+
 def get_dominant_emotion_from_result(result):
     dominant_emotion = result[0]["dominant_emotion"]
     return dominant_emotion
@@ -27,3 +30,10 @@ def calculate_model_percentage_detection_rate(correct_detections, file_names):
 
 def calculate_model_total_emotions_percentages(emotions, file_names):
     return {key: value / len(file_names) for key, value in emotions.items()}
+
+
+def write_emotions_to_csv_file(emotions, csv_file_name):
+    with open(csv_file_name, "w") as f:
+        w = csv.DictWriter(f, emotions.keys())
+        w.writeheader()
+        w.writerow(emotions)
