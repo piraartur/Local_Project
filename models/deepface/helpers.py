@@ -15,7 +15,9 @@ def get_absolute_folder_path(root_folder_path):
 
 
 def get_emotion_from_folder_path(absolute_folder_path):
-    emotion_index = get_index_of_emotion_from_folder_path(absolute_folder_path=absolute_folder_path)
+    emotion_index = get_index_of_emotion_from_folder_path(
+        absolute_folder_path=absolute_folder_path
+    )
     emotion = ""
     for index, char in enumerate(reversed(absolute_folder_path)):
         if index < emotion_index and char != "/":
