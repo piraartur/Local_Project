@@ -4,11 +4,12 @@ from natsort import natsorted
 
 from deepface import DeepFace
 
-from models.deepface.data_manipulation import get_dominant_emotion_from_result, check_model_detection_rate
+from models.deepface.data_manipulation import get_dominant_emotion_from_result, check_model_detection_rate, \
+    calculate_model_percentage_detection_rate
 from models.deepface.helpers import (
     get_project_root,
     display_image,
-    get_absolute_folder_path,
+    get_absolute_folder_path, get_emotion_from_folder_path,
 )
 
 
@@ -36,7 +37,8 @@ def detect_single_image_face_expression(file_names, absolute_folder_path):
         absolute_file_path = absolute_folder_path + file_name
         result = deepface_face_expression_detection(absolute_file_path)
         dominant_emotion = get_dominant_emotion_from_result(result=result)
-        correct_detections = check_model_detection_rate(dominant_emotion=dominant_emotion, emotion="sad",
+        emotion = get_emotion_from_folder_path(absolute_folder_path=absolute_folder_path)
+        correct_detections = check_model_detection_rate(dominant_emotion=dominant_emotion, emotion=emotion,
                                                         correct_detections=correct_detections)
-    print(correct_detections)
-    print(len(file_names))
+    percentage_detection_rate = calculate_model_percentage_detection_rate(correct_detections=correct_detections,file_names=file_names)
+    print(percentage_detection_rate)

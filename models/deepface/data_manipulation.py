@@ -9,3 +9,5 @@ def check_model_detection_rate(dominant_emotion, emotion, correct_detections):
     return correct_detections
 
 
+def calculate_model_percentage_detection_rate(correct_detections, file_names):
+    return correct_detections/len(file_names)
