@@ -225,3 +225,7 @@ dmypy.json
 cython_debug/
 
 !/datasets/fer2013/
+
+datasets/
+
+models/CNN/Pipfile.lock
