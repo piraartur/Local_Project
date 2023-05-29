@@ -1,0 +1,32 @@
+body {
+    background-color: #333;
+    color: #fff;
+}
+
+.title {
+    font-size: 36px;
+    font-weight: bold;
+    color: gold;
+    text-align: center;
+}
+
+.radio-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    letter-spacing: 2px;
+}
+
+.radio-buttons input[type="radio"]{
+    margin-left: 20px;
+}
+
+.controls-and-graph {
+    background-color: #333;
+    color: black;
+    border: 1px solid gray;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 5px;
+}
