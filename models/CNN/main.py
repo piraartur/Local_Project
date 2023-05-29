@@ -17,7 +17,7 @@ test_data_path = os.path.join(dataset_path, "test")
 
 # Define the parameters for training and testing
 batch_size = 32
-num_epochs = 10
+num_epochs = 1
 image_height, image_width = 48, 48
 num_classes = 7  # 7 emotions: angry, disgust, fear, happy, neutral, sad, surprise
 
@@ -40,6 +40,7 @@ test_generator = test_data_generator.flow_from_directory(
     color_mode="grayscale",
     class_mode="categorical"
 )
+
 # Build the CNN model
 model = Sequential()
 model.add(Conv2D(32, (3, 3), padding='same', kernel_initializer='he_normal', input_shape=(image_height, image_width, 1)))
@@ -78,6 +79,14 @@ history = model.fit_generator(
 score = model.evaluate_generator(test_generator, steps=test_generator.n // batch_size)
 print("Test loss:", score[0])
 print("Test accuracy:", score[1])
+
+# Save training and validation accuracy to CSV
+results = pd.DataFrame({
+    'Epoch': range(1, num_epochs + 1),
+    'Training Accuracy': history.history['accuracy'],
+    'Validation Accuracy': history.history['val_accuracy']
+})
+results.to_csv('./models/accuracy_results.csv', index=False)
 
 # Plot training and validation accuracy
 plt.figure(figsize=(10, 6))
