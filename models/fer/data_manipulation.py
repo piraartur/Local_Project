@@ -36,8 +36,10 @@ def check_model_detection_rate(dominant_emotion, emotion, correct_detections):
     return correct_detections
 
 
-def calculate_model_percentage_detection_rate(correct_detections, file_names):
-    return correct_detections / len(file_names)
+def calculate_model_percentage_detection_rate(correct_detections, file_names,emotions_not_detected):
+    detection_rate = correct_detections / (len(file_names)-emotions_not_detected)
+    not_detected = emotions_not_detected / len(file_names)
+    return detection_rate, not_detected
 
 
 def calculate_model_total_emotions_percentages(emotions, file_names, emotions_not_detected):
