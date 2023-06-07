@@ -1,0 +1,54 @@
+body {
+    background-color: #333;
+    color: #fff;
+}
+
+.title {
+    font-size: 36px;
+    font-weight: bold;
+    color: gold;
+    text-align: center;
+}
+
+.radio-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    letter-spacing: 2px;
+}
+
+.radio-buttons input[type="radio"]{
+    margin-left: 20px;
+}
+
+.deepfaceModel, .ferModel {
+    background-color: #333;
+    color: black;
+    border: 1px solid gray;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 5px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+
+.deepfaceModel {
+    animation: fadeIn 1s ease-in-out;
+}
+.ferModel {
+    animation: fadeIn 1s ease-in-out;
+}
+
+.deepfaceModel.hidden,
+.ferModel.hidden {
+  opacity: 0;
+}
