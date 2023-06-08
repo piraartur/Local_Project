@@ -2,13 +2,11 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
-
 from PIL import Image
 from keras.preprocessing.image import ImageDataGenerator
-from keras.layers import Dense, Input, Dropout, GlobalAveragePooling2D, Flatten, Conv2D, BatchNormalization, Activation, MaxPooling2D
-from keras.models import Model, Sequential
-from keras.optimizers import Adam, SGD, RMSprop
+from keras.layers import Dense, Conv2D, Activation, MaxPooling2D, Dropout, Flatten
+from keras.models import Sequential
+from keras.optimizers import Adam
 
 # Get the absolute paths of the dataset and model files
 dataset_path = os.path.abspath("datasets/fer2013")
@@ -36,9 +34,10 @@ train_generator = train_data_generator.flow_from_directory(
 test_generator = test_data_generator.flow_from_directory(
     test_data_path,
     target_size=(image_height, image_width),
-    batch_size=batch_size,
+    batch_size=1,  # Set batch_size to 1 for predictions on individual images
+    shuffle=False,  # Disable shuffling to ensure predictions match the original order
     color_mode="grayscale",
-    class_mode="categorical"
+    class_mode=None  # Set class_mode to None to avoid loading labels
 )
 
 # Build the CNN model
@@ -67,33 +66,42 @@ model.add(Activation('softmax'))
 model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.001), metrics=['accuracy'])
 
 # Train the model
-history = model.fit_generator(
+history = model.fit(
     train_generator,
     steps_per_epoch=train_generator.n // batch_size,
-    epochs=num_epochs,
-    validation_data=test_generator,
-    validation_steps=test_generator.n // batch_size
+    epochs=num_epochs
 )
 
 # Evaluate the model
-score = model.evaluate_generator(test_generator, steps=test_generator.n // batch_size)
+score = model.evaluate(test_generator, steps=test_generator.samples)
 print("Test loss:", score[0])
 print("Test accuracy:", score[1])
 
-# Save training and validation accuracy to CSV
-results = pd.DataFrame({
-    'Epoch': range(1, num_epochs + 1),
-    'Training Accuracy': history.history['accuracy'],
-    'Validation Accuracy': history.history['val_accuracy']
-})
-results.to_csv('./models/accuracy_results.csv', index=False)
+# Get the predictions on the test set
+predictions = model.predict(test_generator, steps=test_generator.samples, verbose=1)
 
-# Plot training and validation accuracy
-plt.figure(figsize=(10, 6))
-plt.plot(history.history['accuracy'], label='Training Accuracy')
-plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
-plt.title('Model Accuracy')
-plt.xlabel('Epoch')
-plt.ylabel('Accuracy')
-plt.legend()
-plt.show()
+# Get the filenames of the original test images
+original_filenames = [filename.split('/')[-1] for filename in test_generator.filenames]
+
+# Create a DataFrame with the predictions and filenames
+results_df = pd.DataFrame(predictions, columns=[str(i) for i in range(num_classes)])
+results_df['Filename'] = original_filenames
+
+# Group the predictions by emotion and calculate the average accuracy
+emotion_labels = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
+emotion_accuracies = []
+for label in emotion_labels:
+    label_indices = [i for i, filename in enumerate(original_filenames) if label in filename]
+    label_predictions = predictions[label_indices]
+    label_average = np.mean(label_predictions, axis=0)
+    label_accuracy = label_average[emotion_labels.index(label)] / np.sum(label_average)
+    emotion_accuracies.append(label_accuracy)
+    label_results_df = pd.DataFrame(label_predictions, columns=[str(i) for i in range(num_classes)])
+    label_results_df['Filename'] = [original_filenames[i] for i in label_indices]
+    label_results_df.to_csv(f'./models/CNN/csv_files/{label}.csv', index=False)
+
+# Create a DataFrame with the emotion accuracies and emotion labels
+emotion_results_df = pd.DataFrame({'Emotion': emotion_labels, 'Accuracy': emotion_accuracies})
+
+# Transpose the DataFrame to have emotions as columns and save it to a CSV file
+emotion_results_df.set_index('Emotion').transpose().to_csv('./models/CNN/csv_files/emotion_results.csv')
