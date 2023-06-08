@@ -27,16 +27,18 @@ app.config['suppress_callback_exceptions'] = True
     [
         Output('deepfaceModel', 'figure'),
         Output('ferModel', 'figure'),
-        Output('show-all-btn', 'n_clicks')
+        Output('show-all-btn', 'n_clicks'),
+        Output('controls-and-radio-item', 'value')
     ],
     [
         Input('controls-and-radio-item', 'value'),
         Input('show-all-btn', 'n_clicks')
-    ]
+    ],
+    [State('controls-and-radio-item', 'value')]
 )
 
 
-def update_graph(emotion_chosen, show_all_clicks):
+def update_graph(emotion_chosen, show_all_clicks, current_value):
 
     if show_all_clicks is None:
         show_all_clicks = 0
@@ -44,6 +46,10 @@ def update_graph(emotion_chosen, show_all_clicks):
     if show_all_clicks > 0:
         emotion_chosen = ''
         show_all_clicks -= 1
+        current_value = ''
+
+    if current_value:
+        emotion_chosen = current_value
 
     fig = go.Figure()
     fig2 = go.Figure()
@@ -95,8 +101,7 @@ def update_graph(emotion_chosen, show_all_clicks):
         plot_bgcolor='#333',
         paper_bgcolor='#333',
         title_font=dict(color='white', size=20),
-        title_x=0.5
-
+        title_x=0.5,
     )
     fig2.update_layout(
         title='Fer Model',
@@ -113,7 +118,7 @@ def update_graph(emotion_chosen, show_all_clicks):
     fig.update_yaxes(title='Percentage', color='white')
     fig2.update_xaxes(title='Emotion', color='white')
     fig2.update_yaxes(title='Percentage', color='white')
-    return fig, fig2, show_all_clicks
+    return fig, fig2, show_all_clicks, emotion_chosen
 
 
 
