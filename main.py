@@ -53,7 +53,7 @@ def update_graph(show_all_clicks):
             fig.add_trace(go.Bar(
                 x=[col],
                 y=[deepfaceCSV.loc[0][col]],
-                marker=dict(color="#007e00"),
+                marker=dict(color="#00cc00"),
             ))
             fig2.add_trace(go.Bar(
                 x=[col],
