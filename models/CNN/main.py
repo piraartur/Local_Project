@@ -83,10 +83,6 @@ predictions = model.predict(test_generator, steps=test_generator.samples, verbos
 # Get the filenames of the original test images
 original_filenames = [filename.split('/')[-1] for filename in test_generator.filenames]
 
-# Create a DataFrame with the predictions and filenames
-results_df = pd.DataFrame(predictions, columns=[str(i) for i in range(num_classes)])
-results_df['Filename'] = original_filenames
-
 # Group the predictions by emotion and calculate the average accuracy
 emotion_labels = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
 emotion_accuracies = []
@@ -96,9 +92,13 @@ for label in emotion_labels:
     label_average = np.mean(label_predictions, axis=0)
     label_accuracy = label_average[emotion_labels.index(label)] / np.sum(label_average)
     emotion_accuracies.append(label_accuracy)
-    label_results_df = pd.DataFrame(label_predictions, columns=[str(i) for i in range(num_classes)])
-    label_results_df['Filename'] = [original_filenames[i] for i in label_indices]
-    label_results_df.to_csv(f'./models/CNN/csv_files/{label}.csv', index=False)
+
+    # Calculate the mean value for each column (except the last one) and store it in a list
+    mean_values = np.mean(label_predictions[:, :-1], axis=0)
+
+    # Write the mean values to a CSV file
+    mean_results = pd.DataFrame(mean_values.reshape(1, -1), columns=[str(i) for i in range(num_classes - 1)])
+    mean_results.to_csv(f'./models/CNN/csv_files/{label}_mean.csv', index=False)
 
 # Create a DataFrame with the emotion accuracies and emotion labels
 emotion_results_df = pd.DataFrame({'Emotion': emotion_labels, 'Accuracy': emotion_accuracies})
