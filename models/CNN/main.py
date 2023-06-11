@@ -2,13 +2,11 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
-
 from PIL import Image
 from keras.preprocessing.image import ImageDataGenerator
-from keras.layers import Dense, Input, Dropout, GlobalAveragePooling2D, Flatten, Conv2D, BatchNormalization, Activation, MaxPooling2D
-from keras.models import Model, Sequential
-from keras.optimizers import Adam, SGD, RMSprop
+from keras.layers import Dense, Conv2D, Activation, MaxPooling2D, Dropout, Flatten
+from keras.models import Sequential
+from keras.optimizers import Adam
 
 # Get the absolute paths of the dataset and model files
 dataset_path = os.path.abspath("datasets/fer2013")
@@ -17,7 +15,7 @@ test_data_path = os.path.join(dataset_path, "test")
 
 # Define the parameters for training and testing
 batch_size = 32
-num_epochs = 10
+num_epochs = 1
 image_height, image_width = 48, 48
 num_classes = 7  # 7 emotions: angry, disgust, fear, happy, neutral, sad, surprise
 
@@ -36,10 +34,12 @@ train_generator = train_data_generator.flow_from_directory(
 test_generator = test_data_generator.flow_from_directory(
     test_data_path,
     target_size=(image_height, image_width),
-    batch_size=batch_size,
+    batch_size=1,  # Set batch_size to 1 for predictions on individual images
+    shuffle=False,  # Disable shuffling to ensure predictions match the original order
     color_mode="grayscale",
-    class_mode="categorical"
+    class_mode=None  # Set class_mode to None to avoid loading labels
 )
+
 # Build the CNN model
 model = Sequential()
 model.add(Conv2D(32, (3, 3), padding='same', kernel_initializer='he_normal', input_shape=(image_height, image_width, 1)))
@@ -66,25 +66,42 @@ model.add(Activation('softmax'))
 model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.001), metrics=['accuracy'])
 
 # Train the model
-history = model.fit_generator(
+history = model.fit(
     train_generator,
     steps_per_epoch=train_generator.n // batch_size,
-    epochs=num_epochs,
-    validation_data=test_generator,
-    validation_steps=test_generator.n // batch_size
+    epochs=num_epochs
 )
 
 # Evaluate the model
-score = model.evaluate_generator(test_generator, steps=test_generator.n // batch_size)
+score = model.evaluate(test_generator, steps=test_generator.samples)
 print("Test loss:", score[0])
 print("Test accuracy:", score[1])
 
-# Plot training and validation accuracy
-plt.figure(figsize=(10, 6))
-plt.plot(history.history['accuracy'], label='Training Accuracy')
-plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
-plt.title('Model Accuracy')
-plt.xlabel('Epoch')
-plt.ylabel('Accuracy')
-plt.legend()
-plt.show()
+# Get the predictions on the test set
+predictions = model.predict(test_generator, steps=test_generator.samples, verbose=1)
+
+# Get the filenames of the original test images
+original_filenames = [filename.split('/')[-1] for filename in test_generator.filenames]
+
+# Group the predictions by emotion and calculate the average accuracy
+emotion_labels = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
+emotion_accuracies = []
+for label in emotion_labels:
+    label_indices = [i for i, filename in enumerate(original_filenames) if label in filename]
+    label_predictions = predictions[label_indices]
+    label_average = np.mean(label_predictions, axis=0)
+    label_accuracy = label_average[emotion_labels.index(label)] / np.sum(label_average)
+    emotion_accuracies.append(label_accuracy)
+
+    # Calculate the mean value for each column (except the last one) and store it in a list
+    mean_values = np.mean(label_predictions[:, :-1], axis=0)
+
+    # Write the mean values to a CSV file
+    mean_results = pd.DataFrame(mean_values.reshape(1, -1), columns=[str(i) for i in range(num_classes - 1)])
+    mean_results.to_csv(f'./models/CNN/csv_files/{label}_mean.csv', index=False)
+
+# Create a DataFrame with the emotion accuracies and emotion labels
+emotion_results_df = pd.DataFrame({'Emotion': emotion_labels, 'Accuracy': emotion_accuracies})
+
+# Transpose the DataFrame to have emotions as columns and save it to a CSV file
+emotion_results_df.set_index('Emotion').transpose().to_csv('./models/CNN/csv_files/emotion_results.csv')
