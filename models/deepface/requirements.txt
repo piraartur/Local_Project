@@ -1,2 +1,6 @@
 deepface
 pathlib
+opencv-python
+natsort
+tensorflow
+matplotlib

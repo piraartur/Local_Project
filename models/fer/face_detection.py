@@ -1,10 +1,12 @@
-import os
 import cv2
 from natsort import natsorted
+import os
+
+os.environ["IMAGEIO_FFMPEG_EXE"] = "/usr/bin/ffmpeg"
 
 from fer import FER
 
-from models.fer.data_manipulation import (
+from data_manipulation import (
     get_dominant_emotion_from_result,
     check_model_detection_rate,
     calculate_model_percentage_detection_rate,
@@ -13,20 +15,37 @@ from models.fer.data_manipulation import (
     calculate_model_total_emotions_percentages,
     write_emotions_to_csv_file,
 )
-from models.fer.helpers import (
+from helpers import (
     get_absolute_folder_path,
     get_emotion_from_folder_path,
 )
 
 
 def fer():
-    detection_rate_angry, not_detected_angry = detect_emotions_and_write_to_csv_file(emotion="angry")
-    detection_rate_disgust, not_detected_disgust = detect_emotions_and_write_to_csv_file(emotion="disgust")
-    detection_rate_fear, not_detected_fear = detect_emotions_and_write_to_csv_file(emotion="fear")
-    detection_rate_happy, not_detected_happy = detect_emotions_and_write_to_csv_file(emotion="happy")
-    detection_rate_neutral, not_detected_neutral = detect_emotions_and_write_to_csv_file(emotion="neutral")
-    detection_rate_sad, not_detected_sad = detect_emotions_and_write_to_csv_file(emotion="sad")
-    detection_rate_surprise, not_detected_surprise = detect_emotions_and_write_to_csv_file(emotion="surprise")
+    detection_rate_angry, not_detected_angry = detect_emotions_and_write_to_csv_file(
+        emotion="angry"
+    )
+    (
+        detection_rate_disgust,
+        not_detected_disgust,
+    ) = detect_emotions_and_write_to_csv_file(emotion="disgust")
+    detection_rate_fear, not_detected_fear = detect_emotions_and_write_to_csv_file(
+        emotion="fear"
+    )
+    detection_rate_happy, not_detected_happy = detect_emotions_and_write_to_csv_file(
+        emotion="happy"
+    )
+    (
+        detection_rate_neutral,
+        not_detected_neutral,
+    ) = detect_emotions_and_write_to_csv_file(emotion="neutral")
+    detection_rate_sad, not_detected_sad = detect_emotions_and_write_to_csv_file(
+        emotion="sad"
+    )
+    (
+        detection_rate_surprise,
+        not_detected_surprise,
+    ) = detect_emotions_and_write_to_csv_file(emotion="surprise")
 
     emotions = {
         "angry": detection_rate_angry,
@@ -47,9 +66,7 @@ def fer():
         "surprise": not_detected_surprise,
     }
 
-    write_emotions_to_csv_file(
-        emotions=emotions, csv_file_name=f"emotions_fer.csv"
-    )
+    write_emotions_to_csv_file(emotions=emotions, csv_file_name=f"emotions_fer.csv")
     write_emotions_to_csv_file(
         emotions=emotions_not_detected, csv_file_name=f"emotions_not_detected_fer.csv"
     )
@@ -59,9 +76,7 @@ def detect_emotions_and_write_to_csv_file(emotion):
     detection_rate, emotions, not_detected = detect_folder_images_face_expressions(
         f"datasets/fer2013/test/{emotion}/"
     )
-    write_emotions_to_csv_file(
-        emotions=emotions, csv_file_name=f"{emotion}_fer.csv"
-    )
+    write_emotions_to_csv_file(emotions=emotions, csv_file_name=f"{emotion}_fer.csv")
     return detection_rate, not_detected
 
 
@@ -106,8 +121,9 @@ def detect_single_image_face_expression(file_names, absolute_folder_path):
         )
 
         dominant_emotion = get_dominant_emotion_from_result(result=result)
-        emotions, emotions_not_detected = get_emotions_from_result(result=result,
-                                                                   emotions_not_detected=emotions_not_detected)
+        emotions, emotions_not_detected = get_emotions_from_result(
+            result=result, emotions_not_detected=emotions_not_detected
+        )
 
         emotions = combine_emotion_values_from_all_images(
             dict1=emotions, dict2=emotions_old
@@ -120,9 +136,44 @@ def detect_single_image_face_expression(file_names, absolute_folder_path):
         emotions_old = emotions
 
     emotions_final = calculate_model_total_emotions_percentages(
-        file_names=file_names, emotions=emotions, emotions_not_detected=emotions_not_detected
+        file_names=file_names,
+        emotions=emotions,
+        emotions_not_detected=emotions_not_detected,
     )
     detection_rate, not_detected = calculate_model_percentage_detection_rate(
-        correct_detections=correct_detections, file_names=file_names, emotions_not_detected=emotions_not_detected
+        correct_detections=correct_detections,
+        file_names=file_names,
+        emotions_not_detected=emotions_not_detected,
     )
     return detection_rate, emotions_final, not_detected
+
+
+def detect_rotated_images(file_path):
+    print(f"Not rotated: {fer_face_expression_detection(file_path=file_path)}")
+    detect_rotated_90(file_path=file_path)
+    detect_rotated_180(file_path=file_path)
+    detect_rotated_270(file_path=file_path)
+
+
+def detect_rotated_90(file_path):
+    src = cv2.imread(file_path)
+    image = cv2.rotate(src, cv2.ROTATE_90_CLOCKWISE)
+    emotion_detector = FER(mtcnn=True)
+    result = emotion_detector.detect_emotions(image)
+    print(f"Rotated 90: {result}")
+
+
+def detect_rotated_180(file_path):
+    src = cv2.imread(file_path)
+    image = cv2.rotate(src, cv2.ROTATE_180)
+    emotion_detector = FER(mtcnn=True)
+    result = emotion_detector.detect_emotions(image)
+    print(f"Rotated 180: {result}")
+
+
+def detect_rotated_270(file_path):
+    src = cv2.imread(file_path)
+    image = cv2.rotate(src, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    emotion_detector = FER(mtcnn=True)
+    result = emotion_detector.detect_emotions(image)
+    print(f"Rotated 270: {result}")

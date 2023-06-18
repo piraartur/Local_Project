@@ -110,3 +110,31 @@ def detect_single_image_face_expression(file_names, absolute_folder_path):
     )
 
     return detection_rate, emotions_final
+
+
+def detect_rotated_images(file_path):
+    print(f"Not rotated: {deepface_face_expression_detection(file_path=file_path)}")
+    detect_rotated_90(file_path=file_path)
+    detect_rotated_180(file_path=file_path)
+    detect_rotated_270(file_path=file_path)
+
+
+def detect_rotated_90(file_path):
+    src = cv2.imread(file_path)
+    image = cv2.rotate(src, cv2.ROTATE_90_CLOCKWISE)
+    result = DeepFace.analyze(image, actions=["emotion"], enforce_detection=False)
+    print(f"Rotated 90: {result}")
+
+
+def detect_rotated_180(file_path):
+    src = cv2.imread(file_path)
+    image = cv2.rotate(src, cv2.ROTATE_180)
+    result = DeepFace.analyze(image, actions=["emotion"], enforce_detection=False)
+    print(f"Rotated 180: {result}")
+
+
+def detect_rotated_270(file_path):
+    src = cv2.imread(file_path)
+    image = cv2.rotate(src, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    result = DeepFace.analyze(image, actions=["emotion"], enforce_detection=False)
+    print(f"Rotated 270: {result}")
